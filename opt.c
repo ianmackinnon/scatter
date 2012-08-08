@@ -126,7 +126,7 @@ void substitutePositiveInteger(char ** dst, char * src, unsigned int f)
 int getOptionsScatterMean(LogLevel *logLevel,
                           char ***inPathList, unsigned int *nInPath, char **outPath,
                           unsigned int *fGiven, unsigned int *fStart, unsigned int *fEnd, unsigned int *fStep,
-                          unsigned int *force,
+                          unsigned int *force, unsigned int *exposure,
                           int argc, char **argv
                           )
 {
@@ -135,6 +135,7 @@ int getOptionsScatterMean(LogLevel *logLevel,
   *logLevel = WARNING;
 
   *force = 0;
+  *exposure = 0;
 
   *fGiven = 0;
   *fStart = 0;
@@ -145,16 +146,17 @@ int getOptionsScatterMean(LogLevel *logLevel,
     {
       static struct option long_options[] =
 	{
-	  {"verbose",  no_argument,        0, 'v'},
-	  {"quiet",    no_argument,        0, 'q'},
-	  {"force",    no_argument,        0, 'f'},
-	  {"time",     required_argument,  0, 't'},
-	  {0, 0, 0, 0}
+	  {"verbose",   no_argument,        0, 'v'},
+	  {"quiet",     no_argument,        0, 'q'},
+	  {"force",     no_argument,        0, 'f'},
+	  {"exposure",  no_argument,        0, 'e'},
+	  {"time",      required_argument,  0, 't'},
+	  {0,           0,                  0,  0 }
 	};
       
       int option_index = 0;
      
-      c = getopt_long (argc, argv, "vqft:",
+      c = getopt_long (argc, argv, "vqfet:",
 		       long_options, &option_index);  
       
       if (c == -1)
@@ -188,6 +190,10 @@ int getOptionsScatterMean(LogLevel *logLevel,
 	  *force = 1;
 	  break;
 	  
+	case 'e' : // quiet output
+	  *exposure = 1;
+	  break;
+	  
 	case 't' : // frame range (inclusive)
 	  if (parsePositiveFrameRange(optarg, fStart, fEnd, fStep))
 	    {
@@ -204,7 +210,7 @@ int getOptionsScatterMean(LogLevel *logLevel,
 	  abort ();
 	}
     }
-     
+
   if (optind > argc - 2)
     {
       logFatal("At least one input and one output argument are required.");
@@ -224,7 +230,6 @@ int getOptionsScatterMean(LogLevel *logLevel,
   *outPath = (char*)malloc((strlen(argv[optind]) + 1));
   strcpy(*outPath, argv[optind]);
   optind++;
-
 
 
 
@@ -364,9 +369,6 @@ int getOptionsScatterSigma(LogLevel *logLevel,
   optind++;
 
 
-
-
-
   if (*fGiven)
     {
       if (*nInPath > 1)
@@ -389,6 +391,115 @@ int getOptionsScatterSigma(LogLevel *logLevel,
     
   }
 
+
+  return 0;  // Win.
+}
+
+
+
+int getOptionsScatterColorBar(LogLevel *logLevel,
+                              char ***inPathList, unsigned int *nInPath,
+                              unsigned int *fGiven, unsigned int *fStart, unsigned int *fEnd, unsigned int *fStep,
+                              int argc, char **argv
+                              )
+{
+  int c;
+
+  *logLevel = WARNING;
+
+  *fGiven = 0;
+  *fStart = 0;
+  *fEnd = 0;
+  *fStep = 1;
+
+  while (1)
+    {
+      static struct option long_options[] =
+	{
+	  {"verbose",   no_argument,        0, 'v'},
+	  {"quiet",     no_argument,        0, 'q'},
+	  {"time",      required_argument,  0, 't'},
+	  {0,           0,                  0,  0 }
+	};
+      
+      int option_index = 0;
+     
+      c = getopt_long (argc, argv, "vqt:",
+		       long_options, &option_index);  
+      
+      if (c == -1)
+	break;
+
+      switch (c)
+	{
+	case 0:
+	  if (long_options[option_index].flag != 0)
+	    break;
+
+	  printf ("option %s", long_options[option_index].name);
+	  if (optarg)
+	    printf (" with arg %s", optarg);
+	  printf ("\n");
+	  break;
+     
+	case 'v' : // verbose output
+	  *logLevel += 1;
+	  if (*logLevel > DEBUG)
+	    *logLevel = DEBUG;
+	  break;
+	  
+	case 'q' : // quiet output
+	  *logLevel -= 1;
+	  if (*logLevel < QUIET)
+	    *logLevel = QUIET;
+	  break;
+	  
+	case 't' : // frame range (inclusive)
+	  if (parsePositiveFrameRange(optarg, fStart, fEnd, fStep))
+	    {
+	      logFatal("Time option argument is invalid. Acceptable forms are 1, 1-10, 1-10x2");
+	      break;
+	    }
+          *fGiven = 1;
+
+	case '?':
+	  /* getopt_long already printed an error message. */
+	  break;
+     
+	default:
+	  abort ();
+	}
+    }
+
+  if (optind > argc - 1)
+    {
+      logFatal("At least one input is required.");
+    }
+
+  *inPathList = NULL;
+  *nInPath = 0;
+  while (optind < argc)
+    {
+      *inPathList = (char**)realloc(*inPathList, ((*nInPath) + 1) * sizeof(char*));
+      (*inPathList)[*nInPath] = (char*)malloc((strlen(argv[optind]) + 1));
+      strcpy((*inPathList)[*nInPath], argv[optind]);
+      (*nInPath)++;
+      optind++;
+    }
+
+
+  if (*fGiven)
+    {
+      if (*nInPath > 1)
+        {
+          logFatal("Cannot supply time argument and multiple input paths.");
+        }
+
+      if (!canSubstitutePositiveIntever((*inPathList)[0]))
+        {
+          logFatal("Input path must contain a %%d parameter for frame substitution, eg. %%d, %%4d, %%04d.");
+        }
+    }
 
   return 0;  // Win.
 }

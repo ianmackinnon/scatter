@@ -23,8 +23,6 @@ int sizeJpeg(char * path, unsigned int * width, unsigned int * height)
   struct jpeg_decompress_struct cinfo;
   struct jpeg_error_mgr jerr;
 
-  logDebug("Getting metadata of %s", path);
-
   cinfo.err = jpeg_std_error(&jerr);
   jpeg_create_decompress(&cinfo);
 
@@ -40,14 +38,13 @@ int sizeJpeg(char * path, unsigned int * width, unsigned int * height)
 
   jpeg_start_decompress(&cinfo);
 
-  logDebug("Width:       %5u", cinfo.output_width);
-  logDebug("Height:      %5u", cinfo.output_height);
-  logDebug("Components:  %5u", cinfo.output_components);
-
   jpeg_destroy_decompress(&cinfo);
+  fclose(inFile);
 
   *width = cinfo.output_width;
   *height = cinfo.output_height;
+
+  
 
   return 0;  // Win.
 }
@@ -78,17 +75,9 @@ int loadJpeg(char * path, unsigned char ** imageData, unsigned int * width, unsi
 
   jpeg_start_decompress(&cinfo);
 
-  logDebug("Width:       %5u", cinfo.output_width);
-  logDebug("Height:      %5u", cinfo.output_height);
-  logDebug("Components:  %5u", cinfo.output_components);
-
   assert(cinfo.output_components == N_COMPONENTS);
 
   size_t rowSize = cinfo.output_width * cinfo.output_components;
-  size_t imageSize = cinfo.output_width * cinfo.output_height * cinfo.output_components;
-
-  logDebug("Row Size: %u", rowSize);
-  logDebug("Image Size: %u", imageSize);
 
   int bufferHeight = 1;
   JSAMPARRAY buffer = (JSAMPARRAY) malloc(sizeof(JSAMPROW) * bufferHeight);
@@ -101,8 +90,6 @@ int loadJpeg(char * path, unsigned char ** imageData, unsigned int * width, unsi
     memcpy(*imageData + rowSize * row, buffer[0], rowSize * rowsRead);
     row += rowsRead;
   }
-
-  logDebug("Read %u rows.", row);
 
   jpeg_destroy_decompress(&cinfo);
   fclose(inFile);

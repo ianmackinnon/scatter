@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "logging.h"
 #include "io.h"
@@ -28,9 +29,11 @@ int getTarget(char *srcPath, unsigned int  *targetWidth, unsigned int *targetHei
 
 
 
-int accumulate(double *dstImage, unsigned char **srcBuffer, char* srcPath, unsigned int targetWidth, unsigned int targetHeight)
+int accumulate(double *dstImage, unsigned char **srcBuffer, char* srcPath, double *alpha,
+               unsigned int targetWidth, unsigned int targetHeight, unsigned int exposure)
 {
   unsigned int width, height;
+  double mean, gain;
   if (loadJpeg(srcPath, srcBuffer, &width, &height))
     {
       logWarning("Loading failed.");
@@ -46,7 +49,19 @@ int accumulate(double *dstImage, unsigned char **srcBuffer, char* srcPath, unsig
       logError("%s: Height %u does not equal target height %u.", srcPath, height, targetHeight);
       return 1;  // Fail.
     }
-  addCharToDoubleColor(dstImage, *srcBuffer, targetWidth * targetHeight);
+  if (exposure)
+    {
+      mean = imageMean(*srcBuffer, targetWidth * targetHeight);
+      logDebug("%.2f", mean);
+      gain = 255.0 / fmax(mean, 1.0);
+      addMultCharToDoubleColor(dstImage, *srcBuffer, targetWidth * targetHeight, gain);
+      *alpha += gain;
+    }
+  else
+    {
+      addCharToDoubleColor(dstImage, *srcBuffer, targetWidth * targetHeight);
+      *alpha += 1.0;
+    }
 
   return 0;  // Win.
 }
@@ -59,21 +74,21 @@ int main (int argc, char **argv)
   unsigned int nInPath;
   char * outPath;
   unsigned int fGiven, fStart, fEnd, fStep;
-  unsigned int force;
+  unsigned int force, exposure;
 
   unsigned int width, height;
   size_t pixels;
 
   double * meanData = NULL;
   unsigned char * frameData = NULL;
-  unsigned int alpha = 0;
+  double alpha = 0.0;
   
   getOptionsScatterMean(&logLevel,
-                    &inPathList, &nInPath, &outPath,
-                    &fGiven, &fStart, &fEnd, &fStep,
-                    &force,
-                    argc, argv);
-
+                        &inPathList, &nInPath, &outPath,
+                        &fGiven, &fStart, &fEnd, &fStep,
+                        &force, &exposure,
+                        argc, argv);
+  
   if (fGiven)
     {
       int f;
@@ -90,10 +105,7 @@ int main (int argc, char **argv)
               frameData = (unsigned char*) malloc(pixels * N_COMPONENTS * sizeof(unsigned char));
               zeroDouble(meanData, pixels);
             }
-          if(accumulate(meanData, &frameData, path, width, height) == 0)
-            {
-              alpha ++;
-            }
+          accumulate(meanData, &frameData, path, &alpha, width, height, exposure);
           free(path);
         }
     }
@@ -112,14 +124,9 @@ int main (int argc, char **argv)
               frameData = (unsigned char*) malloc(pixels * N_COMPONENTS * sizeof(unsigned char));
               zeroDouble(meanData, pixels);
             }
-          if(accumulate(meanData, &frameData, path, width, height) == 0)
-            {
-              alpha ++;
-            }
+          accumulate(meanData, &frameData, path, &alpha, width, height, exposure);
         }
     }
-
-  logDebug("%u", alpha);
 
   divideDouble(meanData, alpha, pixels);
   doubleToChar(frameData, meanData, pixels);

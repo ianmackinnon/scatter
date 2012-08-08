@@ -28,13 +28,23 @@ void addCharToDoubleColor(double * dst, unsigned char * src, size_t pixels)
 
 
 
-void divideDouble(double * dst, unsigned int alpha, size_t pixels)
+void addMultCharToDoubleColor(double * dst, unsigned char * src, size_t pixels, double gain)
 {
   size_t i;
-  double alphaDouble = (double)alpha;
   for (i = 0; i < pixels * N_COMPONENTS; i++)
     {
-      dst[i] /= alphaDouble;
+      dst[i] += ((double)(src[i])) * gain;
+    }
+}
+
+
+
+void divideDouble(double  * dst, double alpha, size_t pixels)
+{
+  size_t i;
+  for (i = 0; i < pixels * N_COMPONENTS; i++)
+    {
+      dst[i] /= alpha;
     }
 }
 
@@ -67,6 +77,43 @@ void doubleToChar(unsigned char * dst, double * src, size_t pixels)
     {
       dst[i] = (unsigned int)(src[i]);
     }
+}
+
+
+
+double imageMean(unsigned char * src, size_t pixels)
+{
+  double mean;
+  size_t alpha;
+  size_t i;
+  mean = 0.0;
+  alpha = 0;
+  for (i = 0; i < pixels * N_COMPONENTS; i++)
+    {
+      mean += (double)(src[i]);
+      alpha ++;
+    }
+  return mean / (double)alpha;
+}
+
+
+
+void imageColorMean(double * r, double * g, double * b, unsigned char * src, size_t pixels)
+{
+  size_t alpha;
+  size_t i;
+  *r = *g = *b = 0.0;
+  alpha = 0;
+  for (i = 0; i < pixels; i++)
+    {
+      *r += (double)(src[i * N_COMPONENTS]);
+      *g += (double)(src[i * N_COMPONENTS + 1]);
+      *b += (double)(src[i * N_COMPONENTS + 2]);
+      alpha ++;
+    }
+  *r /= (double)alpha;
+  *g /= (double)alpha;
+  *b /= (double)alpha;
 }
 
 
