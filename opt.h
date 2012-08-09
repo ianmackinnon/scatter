@@ -23,6 +23,12 @@ int getOptionsScatterColorBar(LogLevel *logLevel,
                               unsigned int *fGiven, unsigned int *fStart, unsigned int *fEnd, unsigned int *fStep,
                               int argc, char **argv
                               );
+int getOptionsScatterRolling(LogLevel *logLevel,
+                             char ***inPathList, unsigned int *nInPath, char **outPath,
+                             unsigned int *fGiven, unsigned int *fStart, unsigned int *fEnd, unsigned int *fStep,
+                             unsigned int *force, double *exposure, double *rollOffset,
+                             int argc, char **argv
+                             );
 
 int freePathList(char ***inPathList, unsigned int nInPath);
 

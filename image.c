@@ -39,12 +39,105 @@ void addMultCharToDoubleColor(double * dst, unsigned char * src, size_t pixels, 
 
 
 
+void addCharToDoubleColorRolling(double * dst, unsigned char * src, unsigned int width, unsigned int height, double t)
+{
+  unsigned int x, y;
+  size_t i;
+  double t2, mult;
+  for (y = 0; y < height; y++)
+    {
+      for (x = 0; x < width; x++)
+        {
+          i = y * width  + x;
+          t2 = (double)x / (double)width;
+          mult = fmax(cos((t - t2) * 2 * M_PI), 0.0);
+          dst[i * N_COMPONENTS] += (double)(src[i * N_COMPONENTS]) * mult;
+          dst[i * N_COMPONENTS + 1] += (double)(src[i * N_COMPONENTS + 1]) * mult;
+          dst[i * N_COMPONENTS + 2] += (double)(src[i * N_COMPONENTS + 2]) * mult;
+        }
+    }
+}
+
+
+
+void addMultCharToDoubleColorRolling(double * dst, unsigned char * src, unsigned int width, unsigned int height, double gain, double t)
+{
+  unsigned int x, y;
+  size_t i;
+  double t2, mult;
+  for (y = 0; y < height; y++)
+    {
+      for (x = 0; x < width; x++)
+        {
+          i = y * width  + x;
+          t2 = (double)x / (double)width;
+          mult = fmax(cos((t - t2) * 2 * M_PI), 0.0) * gain;
+          dst[i * N_COMPONENTS] += (double)(src[i * N_COMPONENTS]) * mult;
+          dst[i * N_COMPONENTS + 1] += (double)(src[i * N_COMPONENTS + 1]) * mult;
+          dst[i * N_COMPONENTS + 2] += (double)(src[i * N_COMPONENTS + 2]) * mult;
+        }
+    }
+}
+
+
+
+void addCharToDoubleRolling(double * dst, unsigned int width, unsigned int height, double t)
+{
+  unsigned int x, y;
+  size_t i;
+  double t2, mult;
+  for (y = 0; y < height; y++)
+    {
+      for (x = 0; x < width; x++)
+        {
+          i = y * width  + x;
+          t2 = (double)x / (double)width;
+          mult = fmax(cos((t - t2) * 2 * M_PI), 0.0);
+          dst[i] += mult;
+        }
+    }
+}
+
+
+
+void addMultCharToDoubleRolling(double * dst, unsigned int width, unsigned int height, double gain, double t)
+{
+  unsigned int x, y;
+  size_t i;
+  double t2, mult;
+  for (y = 0; y < height; y++)
+    {
+      for (x = 0; x < width; x++)
+        {
+          i = y * width  + x;
+          t2 = (double)x / (double)width;
+          mult = fmax(cos((t - t2) * 2 * M_PI), 0.0) * gain;
+          dst[i] += mult;
+        }
+    }
+}
+
+
+
 void divideDouble(double  * dst, double alpha, size_t pixels)
 {
   size_t i;
   for (i = 0; i < pixels * N_COMPONENTS; i++)
     {
       dst[i] /= alpha;
+    }
+}
+
+
+
+void divideDoubleColorDouble(double * dst, double * alpha, size_t pixels)
+{
+  size_t i;
+  for (i = 0; i < pixels; i++)
+    {
+      dst[i * N_COMPONENTS] /= alpha[i];
+      dst[i * N_COMPONENTS + 1] /= alpha[i];
+      dst[i * N_COMPONENTS + 2] /= alpha[i];
     }
 }
 

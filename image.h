@@ -9,8 +9,15 @@
 
 void addCharToDoubleColor(double * dst, unsigned char * src, size_t pixels);
 void addMultCharToDoubleColor(double * dst, unsigned char * src, size_t pixels, double gain);
+void addCharToDoubleColorRolling(double * dst, unsigned char * src, unsigned int width, unsigned int height, double t);
+void addMultCharToDoubleColorRolling(double * dst, unsigned char * src, unsigned int width, unsigned int height, double gain, double t);
+void addCharToDoubleRolling(double * dst, unsigned int width, unsigned int height, double t);
+void addMultCharToDoubleRolling(double * dst, unsigned int width, unsigned int height, double gain, double t);
+
 void divideDouble(double * dst, double alpha, size_t pixels);
+void divideDoubleColorDouble(double * dst, double * alpha, size_t pixels);
 void divideSigmaDouble(double * sigma, unsigned int alpha, size_t pixels);
+
 void doubleToChar(unsigned char * dst, double * src, size_t pixels);
 double imageMean(unsigned char * src, size_t pixels);
 void imageColorMean(double * r, double * g, double * b, unsigned char * src, size_t pixels);

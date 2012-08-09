@@ -2,7 +2,7 @@ SHELL := /bin/bash
 
 .PHONY: all install uninstall clean
 
-all: scatter-mean scatter-sigma scatter-color-bar
+all: scatter-mean scatter-sigma scatter-color-bar scatter-rolling
 
 scatter-mean: scatter-mean.c logging.h logging.c io.h io.c opt.h opt.c image.h image.c
 	gcc -Wall -o scatter-mean scatter-mean.c logging.c io.c opt.c image.c -ltiff -lm -ljpeg
@@ -13,13 +13,16 @@ scatter-sigma: scatter-sigma.c logging.h logging.c io.h io.c opt.h opt.c image.h
 scatter-color-bar: scatter-color-bar.c logging.h logging.c io.h io.c opt.h opt.c image.h image.c
 	gcc -Wall -o scatter-color-bar scatter-color-bar.c logging.c io.c opt.c image.c -ltiff -lm -ljpeg
 
-install: scatter-mean scatter-sigma scatter-color-bar
-	cp scatter-mean scatter-sigma scatter-color-bar /usr/local/bin
+scatter-rolling: scatter-rolling.c logging.h logging.c io.h io.c opt.h opt.c image.h image.c
+	gcc -Wall -o scatter-rolling scatter-rolling.c logging.c io.c opt.c image.c -ltiff -lm -ljpeg
+
+install: scatter-mean scatter-sigma scatter-color-bar scatter-rolling
+	cp scatter-mean scatter-sigma scatter-color-bar scatter-rolling /usr/local/bin
 
 uninstall:
-	rm -f /usr/local/bin/scatter-mean /usr/local/bin/scatter-sigma /usr/local/bin/scatter-color-bar
+	rm -f /usr/local/bin/scatter-mean /usr/local/bin/scatter-sigma /usr/local/bin/scatter-color-bar /usr/local/bin/scatter-rolling
 
 clean:
 	echo Cleaning up... 
-	rm -rf scatter-mean scatter-sigma scatter-color-bar
+	rm -rf scatter-mean scatter-sigma scatter-color-bar scatter-rolling
 
